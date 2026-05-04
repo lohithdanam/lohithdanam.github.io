@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DANAM LOHITH</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #000000;
+  --green: #00ff41;
+  --green-dim: #00aa2b;
+  --green-glow: rgba(0,255,65,0.12);
+  --cyan: #00e5ff;
+  --orange: #ff6600;
+  --white: #e8ffe8;
+  --grey: #336633;
+  --scanline: rgba(0,0,0,0.45);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: #000;
+  color: var(--green);
+  font-family: 'Share Tech Mono', monospace;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* STAR CANVAS */
+#starfield { position: fixed; inset: 0; z-index: 0; }
+
+/* SCANLINES */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.4) 0px, rgba(0,0,0,0.4) 1px, transparent 1px, transparent 4px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* LAYOUT */
+#app { position: relative; z-index: 2; }
+
+/* NAV */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index: 200;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 3rem;
+  border-bottom: 1px solid var(--green-dim);
+  background: rgba(0,0,0,0.95);
+}
+.nav-id {
+  font-family: 'VT323', monospace;
+  font-size: 1.4rem;
+  color: var(--green);
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 10px var(--green);
+}
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem; color: var(--green-dim);
+  text-decoration: none; letter-spacing: 0.2em; text-transform: uppercase;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.nav-links a:hover { color: var(--green); text-shadow: 0 0 8px var(--green); }
+
+/* HERO */
+#hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  padding: 0 10vw;
+}
+.hero-prompt {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.78rem; color: var(--green-dim);
+  letter-spacing: 0.3em; margin-bottom: 1.5rem;
+  opacity: 0; animation: fadeIn 0.5s 0.5s forwards;
+}
+.hero-name {
+  font-family: 'VT323', monospace;
+  font-size: clamp(4.5rem, 13vw, 10rem);
+  color: var(--green);
+  line-height: 0.88;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 20px var(--green), 0 0 60px rgba(0,255,65,0.25), 0 0 120px rgba(0,255,65,0.08);
+  opacity: 0; animation: fadeIn 0.6s 0.8s forwards, glitch 9s 3s infinite;
+}
+@keyframes glitch {
+  0%,93%,100% { text-shadow: 0 0 20px var(--green), 0 0 60px rgba(0,255,65,0.25); transform: none; }
+  94% { transform: translateX(-3px) skewX(-1deg); text-shadow: 3px 0 var(--cyan), 0 0 20px var(--cyan); }
+  96% { transform: translateX(3px) skewX(1deg); text-shadow: -3px 0 var(--orange); }
+  98% { transform: translateX(-1px); }
+  99% { transform: none; }
+}
+.hero-role {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.95rem; color: var(--cyan);
+  letter-spacing: 0.3em; text-transform: uppercase;
+  margin-top: 1.2rem;
+  text-shadow: 0 0 12px var(--cyan);
+  opacity: 0; animation: fadeIn 0.5s 1.1s forwards;
+}
+.hero-sub {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.95rem; color: var(--grey);
+  margin-top: 1.4rem; max-width: 460px; line-height: 1.75;
+  opacity: 0; animation: fadeIn 0.5s 1.4s forwards;
+}
+.hero-btns {
+  display:flex; gap:1.2rem; margin-top:2.5rem;
+  opacity:0; animation: fadeIn 0.5s 1.7s forwards;
+}
+.btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase;
+  text-decoration: none; padding: 0.85rem 2.5rem;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: all 0.2s;
+}
+.btn-solid {
+  background: var(--green); color: #000; border: none;
+  text-shadow: none; font-weight: 700;
+}
+.btn-solid:hover {
+  background: #000; color: var(--green);
+  text-shadow: 0 0 10px var(--green);
+  box-shadow: inset 0 0 0 1px var(--green);
+}
+.btn-ghost {
+  background: transparent; color: var(--green);
+  border: 1px solid var(--green-dim);
+  text-shadow: 0 0 6px rgba(0,255,65,0.4);
+}
+.btn-ghost:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 16px rgba(0,255,65,0.2);
+  background: rgba(0,255,65,0.05);
+}
+
+/* SECTION WRAPPER */
+.sec-wrap { max-width: 860px; margin: 0 auto; padding: 7rem 2rem; }
+
+/* SECTION TITLE */
+.sec-title {
+  font-family: 'VT323', monospace;
+  font-size: 2.6rem; color: var(--green);
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 16px var(--green), 0 0 40px rgba(0,255,65,0.15);
+  display: flex; align-items: center; gap: 1.2rem;
+  margin-bottom: 3rem;
+}
+.sec-title::before { content: '>_'; color: var(--cyan); text-shadow: 0 0 10px var(--cyan); font-size: 1.8rem; }
+.sec-title::after  { content: ''; flex:1; height:1px; background: linear-gradient(to right, var(--green-dim), transparent); }
+
+/* ABOUT */
+.about-text {
+  font-family: 'Courier Prime', monospace;
+  font-size: 1.05rem; color: #99cc99;
+  line-height: 1.9; max-width: 640px;
+  border-left: 2px solid var(--green-dim);
+  padding-left: 1.5rem;
+}
+
+/* MORE ABOUT */
+.more-grid { display:grid; gap:1px; background: #001800; border: 1px solid var(--green-dim); }
+.more-card {
+  background: #000; padding: 1.6rem 2rem 1.6rem 3.5rem;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.95rem; color: #88bb88; line-height: 1.8;
+  position: relative;
+}
+.more-card::before {
+  content: attr(data-line);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; color: var(--green-dim);
+  position: absolute; top: 1.7rem; left: 1rem;
+  letter-spacing: 0.1em;
+}
+
+/* INTERESTS */
+.interests-wrap { display:flex; flex-wrap:wrap; gap:0.6rem; }
+.int-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.5rem 1.3rem; border: 1px solid #114411; color: var(--green-dim);
+  background: transparent; transition: all 0.2s; cursor: default;
+  clip-path: polygon(5px 0%, 100% 0%, calc(100% - 5px) 100%, 0% 100%);
+}
+.int-tag:hover {
+  border-color: var(--green); color: var(--green);
+  background: var(--green-glow); text-shadow: 0 0 6px var(--green);
+}
+
+/* SKILLS */
+.skills-table { width:100%; border-collapse:collapse; }
+.skills-table tr { border-bottom: 1px solid #0a1a0a; }
+.skills-table td { padding: 1rem 0; vertical-align: top; }
+.skill-cat {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem; color: var(--cyan);
+  text-shadow: 0 0 8px rgba(0,229,255,0.3);
+  width: 130px; letter-spacing: 0.15em; padding-right: 2rem;
+}
+.skill-vals { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:flex-start; }
+.skill-pill {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem; color: #99cc99;
+  border: 1px solid #224422; padding: 0.2rem 0.8rem;
+  transition: all 0.2s; letter-spacing: 0.05em;
+}
+.skill-pill:hover { border-color: var(--green); color: var(--green); text-shadow: 0 0 6px var(--green); }
+
+/* PROJECTS */
+.proj-list { display:grid; gap:2px; background: #001a00; border: 1px solid var(--green-dim); }
+.proj-card {
+  background: #000; padding: 2.2rem 2.5rem;
+  transition: background 0.3s;
+}
+.proj-card:hover { background: rgba(0,255,65,0.015); }
+.proj-index {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; color: var(--green-dim);
+  letter-spacing: 0.3em; margin-bottom: 0.5rem;
+}
+.proj-name {
+  font-family: 'VT323', monospace;
+  font-size: 2.2rem; color: var(--green);
+  letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.3);
+  margin-bottom: 0.8rem;
+}
+.proj-desc {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.9rem; color: #556655; line-height: 1.7;
+  margin-bottom: 1rem; max-width: 540px;
+}
+.proj-feats { list-style:none; margin-bottom: 1.2rem; display:flex; flex-wrap:wrap; gap: 0.4rem 1.5rem; }
+.proj-feats li {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem; color: #557755; letter-spacing: 0.06em;
+}
+.proj-feats li::before { content: '+ '; color: var(--green-dim); }
+.proj-link {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.73rem; color: var(--cyan);
+  text-decoration: none; letter-spacing: 0.12em;
+  text-shadow: 0 0 6px rgba(0,229,255,0.25);
+  transition: text-shadow 0.2s;
+}
+.proj-link:hover { text-shadow: 0 0 14px var(--cyan); }
+
+/* CONTACT */
+.contact-box {
+  border: 1px solid var(--green-dim);
+  padding: 4rem 3rem; text-align:center;
+  background: rgba(0,255,65,0.01);
+  position: relative;
+}
+.contact-box::before {
+  content: '[ TRANSMISSION OPEN ]';
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; color: var(--green-dim); letter-spacing: 0.2em;
+  position: absolute; top: -0.5rem; left:50%; transform:translateX(-50%);
+  background:#000; padding:0 1rem; white-space:nowrap;
+}
+.contact-box::after {
+  content: '[ END OF LINE ]';
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; color: var(--green-dim); letter-spacing: 0.2em;
+  position: absolute; bottom: -0.5rem; left:50%; transform:translateX(-50%);
+  background:#000; padding:0 1rem; white-space:nowrap;
+}
+.contact-msg {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.9rem; color: var(--grey);
+  letter-spacing: 0.2em; margin-bottom: 2.5rem; line-height: 2;
+}
+.contact-links { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; }
+.c-link {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.73rem; color: var(--green);
+  text-decoration: none; letter-spacing: 0.12em;
+  border: 1px solid var(--green-dim); padding: 0.9rem 2rem;
+  display:flex; align-items:center; gap:0.8rem;
+  clip-path: polygon(5px 0%, 100% 0%, calc(100% - 5px) 100%, 0% 100%);
+  transition: all 0.2s;
+}
+.c-link:hover {
+  border-color: var(--green); text-shadow: 0 0 8px var(--green);
+  box-shadow: 0 0 16px rgba(0,255,65,0.12); background: var(--green-glow);
+}
+.c-tag { color: var(--cyan); font-size: 0.62rem; letter-spacing: 0.2em; text-shadow: 0 0 6px var(--cyan); }
+
+/* FOOTER */
+footer {
+  position:relative; z-index:2;
+  text-align:center; padding:2rem;
+  border-top: 1px solid #0a1a0a;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; color: var(--green-dim); letter-spacing: 0.2em;
+}
+
+/* REVEAL */
+.reveal { opacity:0; transform:translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.vis { opacity:1; transform:none; }
+
+/* BLINK */
+.blink { animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:none; }
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  nav { padding:1rem 1.5rem; }
+  .nav-links { display:none; }
+  #hero { padding:0 1.5rem; }
+  .sec-wrap { padding:5rem 1.5rem; }
+  .contact-box { padding:2.5rem 1.5rem; }
+  .proj-card { padding:1.5rem; }
+  .skill-cat { width:80px; font-size:0.62rem; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div id="app">
+
+<nav>
+  <span class="nav-id">DL://SYS</span>
+  <ul class="nav-links">
+    <li><a href="#about">ABOUT</a></li>
+    <li><a href="#skills">SKILLS</a></li>
+    <li><a href="#projects">PROJECTS</a></li>
+    <li><a href="#contact">CONTACT</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div>
+    <p class="hero-prompt">SYSTEM ONLINE &mdash; IDENTITY CONFIRMED &nbsp;<span class="blink">_</span></p>
+    <h1 class="hero-name">DANAM<br>LOHITH</h1>
+    <p class="hero-role">FULL STACK DEVELOPER</p>
+    <p class="hero-sub">Building CineVoid &mdash; Exploring Technology, Cinema, and the Unknown</p>
+    <div class="hero-btns">
+      <a href="https://github.com/danamlohith" target="_blank" class="btn btn-solid">GITHUB</a>
+      <a href="https://linkedin.com/in/lohith-danam" target="_blank" class="btn btn-ghost">LINKEDIN</a>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="sec-wrap">
+    <div class="sec-title">ABOUT</div>
+    <p class="about-text reveal">
+      B.Tech Computer Science student focused on building web applications and exploring modern technologies. Interested in cinema, technology, and real-world problem solving.
+    </p>
+  </div>
+</section>
+
+<!-- MORE ABOUT -->
+<section id="more">
+  <div class="sec-wrap" style="padding-top:0">
+    <div class="sec-title">MORE ABOUT ME</div>
+    <div class="more-grid reveal">
+      <div class="more-card" data-line="01">I am driven by curiosity and a desire to understand how systems work, both in technology and beyond. I enjoy building projects from scratch and learning through experimentation.</div>
+      <div class="more-card" data-line="02">I have a strong interest in cinema and storytelling, and how technology can be used to create immersive digital experiences.</div>
+      <div class="more-card" data-line="03">I'm also deeply interested in space, existence, and the bigger questions about reality and the universe — which shapes the way I think and approach problems.</div>
+      <div class="more-card" data-line="04">Alongside this, I'm drawn to outdoor exploration and survival-based thinking, which influences the kind of applications I want to build.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH INTERESTS -->
+<section id="interests">
+  <div class="sec-wrap" style="padding-top:0">
+    <div class="sec-title">TECH INTERESTS</div>
+    <div class="interests-wrap reveal">
+      <div class="int-tag">Web Development</div>
+      <div class="int-tag">Full Stack Systems</div>
+      <div class="int-tag">API Integration</div>
+      <div class="int-tag">UI / UX Design</div>
+      <div class="int-tag">Film-Tech Platforms</div>
+      <div class="int-tag">VFX / CGI</div>
+      <div class="int-tag">Interactive Experiences</div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="sec-wrap" style="padding-top:0">
+    <div class="sec-title">SKILLS</div>
+    <table class="skills-table reveal">
+      <tr>
+        <td class="skill-cat">LANGUAGES</td>
+        <td><div class="skill-vals"><span class="skill-pill">Python</span><span class="skill-pill">C</span><span class="skill-pill">C++</span><span class="skill-pill">JavaScript</span></div></td>
+      </tr>
+      <tr>
+        <td class="skill-cat">FRONTEND</td>
+        <td><div class="skill-vals"><span class="skill-pill">HTML5</span><span class="skill-pill">CSS3</span><span class="skill-pill">React</span></div></td>
+      </tr>
+      <tr>
+        <td class="skill-cat">BACKEND</td>
+        <td><div class="skill-vals"><span class="skill-pill">Node.js</span><span class="skill-pill">Express</span><span class="skill-pill">REST APIs</span></div></td>
+      </tr>
+      <tr>
+        <td class="skill-cat">TOOLS</td>
+        <td><div class="skill-vals"><span class="skill-pill">Git</span><span class="skill-pill">GitHub</span><span class="skill-pill">VS Code</span></div></td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="sec-wrap" style="padding-top:0">
+    <div class="sec-title">PROJECTS</div>
+    <div class="proj-list">
+      <div class="proj-card reveal">
+        <div class="proj-index">// PROJECT_01</div>
+        <div class="proj-name">CINEVOID</div>
+        <p class="proj-desc">Movie tracking and discovery platform designed for cinephiles who want to own their film journey.</p>
+        <ul class="proj-feats">
+          <li>Search and discover films</li>
+          <li>Personal watchlist</li>
+          <li>Ratings and user interaction</li>
+        </ul>
+        <a href="https://github.com/danamlohith/cinevoid" target="_blank" class="proj-link">→ github.com/danamlohith/cinevoid</a>
+      </div>
+      <div class="proj-card reveal">
+        <div class="proj-index">// PROJECT_02</div>
+        <div class="proj-name">OUTDOORRAPS</div>
+        <p class="proj-desc">Off-grid survival companion built for remote environments and outdoor exploration.</p>
+        <ul class="proj-feats">
+          <li>Offline survival guides</li>
+          <li>Resource logging</li>
+          <li>Map-based support</li>
+        </ul>
+        <a href="https://github.com/danamlohith/outdoorraps" target="_blank" class="proj-link">→ github.com/danamlohith/outdoorraps</a>
+      </div>
+      <div class="proj-card reveal">
+        <div class="proj-index">// PROJECT_03</div>
+        <div class="proj-name">SIMIFILMS</div>
+        <p class="proj-desc">Movie recommendation system that surfaces similar films based on what you love.</p>
+        <ul class="proj-feats">
+          <li>API-based similarity engine</li>
+          <li>Smart filtering logic</li>
+        </ul>
+        <a href="https://github.com/danamlohith/simifilms" target="_blank" class="proj-link">→ github.com/danamlohith/simifilms</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="sec-wrap" style="padding-top:0">
+    <div class="sec-title">CONTACT</div>
+    <div class="contact-box reveal">
+      <p class="contact-msg">OPEN TO COLLABORATIONS<br>OPPORTUNITIES &amp; CONVERSATIONS</p>
+      <div class="contact-links">
+        <a href="https://github.com/danamlohith" target="_blank" class="c-link"><span class="c-tag">GH</span>github.com/danamlohith</a>
+        <a href="https://linkedin.com/in/lohith-danam" target="_blank" class="c-link"><span class="c-tag">LI</span>lohith-danam</a>
+        <a href="mailto:lohitdanam3696@gmail.com" class="c-link"><span class="c-tag">✉</span>lohitdanam3696@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>DANAM LOHITH &nbsp;///&nbsp; FULL STACK DEVELOPER &nbsp;///&nbsp; 2025 &nbsp;<span class="blink">_</span></footer>
+
+<script>
+// PERSPECTIVE STARFIELD (80s hyperspace feel)
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let W, H, stars = [];
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+
+function mkStar() {
+  return { x: (Math.random()-0.5)*W*2, y: (Math.random()-0.5)*H*2, z: Math.random()*W, pz: null };
+}
+
+function init(n=300) { stars = Array.from({length:n}, mkStar); }
+
+let frame = 0;
+function draw() {
+  frame++;
+  // deep black fade
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(0, 0, W, H);
+
+  stars.forEach(s => {
+    const prevZ = s.pz ?? s.z;
+    s.pz = s.z;
+    s.z  -= 2.4;
+
+    if (s.z <= 0) { Object.assign(s, mkStar()); s.pz = null; return; }
+
+    const sx  = (s.x / s.z)  * W/2 + W/2;
+    const sy  = (s.y / s.z)  * H/2 + H/2;
+    const spx = (s.x / prevZ)* W/2 + W/2;
+    const spy = (s.y / prevZ)* H/2 + H/2;
+
+    if (sx < 0 || sx > W || sy < 0 || sy > H) return;
+
+    const size = Math.max(0.3, 2.5 * (1 - s.z/W));
+    const bright = 1 - s.z/W;
+
+    // streak trail
+    if (s.pz && bright > 0.3) {
+      ctx.beginPath();
+      ctx.moveTo(spx, spy);
+      ctx.lineTo(sx, sy);
+      const col = bright > 0.7
+        ? `rgba(0,255,65,${bright * 0.5})`
+        : `rgba(200,255,220,${bright * 0.4})`;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = size * 0.5;
+      ctx.stroke();
+    }
+
+    // star dot
+    ctx.beginPath();
+    ctx.arc(sx, sy, size, 0, Math.PI*2);
+    ctx.fillStyle = bright > 0.6
+      ? `rgba(180,255,200,${bright})`
+      : `rgba(100,200,120,${bright})`;
+    ctx.fill();
+  });
+
+  requestAnimationFrame(draw);
+}
+
+resize(); init(); draw();
+window.addEventListener('resize', () => { resize(); init(); });
+
+// SCROLL REVEAL
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('vis'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
